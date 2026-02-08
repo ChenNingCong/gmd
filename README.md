@@ -36,9 +36,14 @@ pip install torch matplotlib numpy pyyaml
 ### 2. YAML Configuration
 
 We provide three pre-builtin yaml configuration files:
-1. `config/vanilla.yaml`: This mimics the hyper-parameters used in the original paper.
-2. `config/stable_gamma.yaml`: This config implements a stable gamma warmup strategy, starting from a low value and gradually increasing to 1.0 over 15,000 epochs. This eventually learns the original distribution but with a more stable training trajectory. When gamma is small, the model focuses on capturing the overall structure of the distribution, which can lead to more stable gradients and a smoother convergence path.
-3. `config/large_gamma.yaml`: This config explores a more aggressive mode-seeking strategy, starting from 0.2 and increasing to 1.5 over 15,000 epochs. This encourages the model to focus more on high-density regions, which can lead to sharper samples but may also introduce instability if not carefully managed.
+1. `config/vanilla.yaml`: This mimics the hyper-parameters used in the original paper. It sets $\gamma=1$ throughout training, which directly learns the original distribution without any mode-seeking or exploration bias. However, the temperature is a constant 0.1 so the model stucks in one mode and fails to capture the full distribution.
+    ![alt text](asset/vanilla.png)
+2. `config/vanilla_temperature.yaml`: This config is similar to the vanilla setup but incorporates a linear decay of the kernel temperature from 1.0 to 0.1 over 15,000 epochs. This allows the model to start with a smoother density estimate, which can help capture the overall structure of the distribution early on, and then gradually focus on finer details as training progresses. 
+    ![alt text](asset/vanilla_temperature.png)
+3. `config/stable_gamma.yaml`: This config implements a stable gamma warmup strategy, starting from a low value and gradually increasing to 1.0 over 15,000 epochs. This eventually learns the original distribution but with a more stable training trajectory. When gamma is small, the model focuses on capturing the overall structure of the distribution, which can lead to more stable gradients and a smoother convergence path.
+    ![alt text](asset/stable_gamma.png)
+4. `config/large_gamma.yaml`: This config explores a more aggressive mode-seeking strategy, starting from 0.2 and increasing to 1.5 over 15,000 epochs. This encourages the model to focus more on high-density regions, which can lead to sharper samples but may also introduce instability if not carefully managed.
+    ![alt text](asset/large_gamma.png)
 
 ### 3. Execution
 

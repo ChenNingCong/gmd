@@ -14,7 +14,10 @@ class Config:
     latent_dim: int = 16
     data_dim: int = 2
     N: int = 512
-    T: float = 0.1            # Kernel bandwidth (Temperature)
+    # By default, we keep temperature constant, but these parameters allow for linear decay if desired
+    T_start: float = 0.1      # Initial temperature for kernel
+    T_end: float = 0.1       # Final temperature for kernel
+    T_warmup_epochs: int = 15000       # Linear decay steps for temperature
     epochs: int = 100010      # Steps actually
     lr: float = 1e-3
     gamma_start: float = 0.2  # Initial mode-seeking strength
@@ -177,6 +180,8 @@ def train(cfg):
 
         # Gamma Linear Schedule
         curr_gamma = cfg.gamma_start + (cfg.gamma_end - cfg.gamma_start) * min(1.0, epoch / cfg.gamma_warmup_epochs)
+        # Add temperature linear decay
+        curr_T = cfg.T_start + (cfg.T_end - cfg.T_start) * min(1.0, epoch / cfg.T_warmup_epochs)
 
         # 1. Generate Samples
         e = torch.randn(cfg.N, cfg.latent_dim, device=cfg.device)
@@ -185,7 +190,7 @@ def train(cfg):
         # 2. Compute Target via Score-Matching Drift
         y_pos = sample_real_data(cfg.N, cfg.device)
         with torch.no_grad():
-            V = compute_V_DMD_Strict(x, y_pos, x.clone(), cfg.T, curr_gamma)
+            V = compute_V_DMD_Strict(x, y_pos, x.clone(), curr_T, curr_gamma)
             x_target = x + V
         
         # 3. Optimization Step
@@ -200,7 +205,9 @@ def train(cfg):
         if epoch % cfg.plot_interval == 0:
             if not update_plots(axs, fig, epoch, x, V, loss_history, curr_gamma, cfg):
                 break
-
+        # 5. Logging
+        if epoch % 1000 == 0:
+            print(f"Epoch {epoch:06d} | Loss: {loss.item():.4e} | Gamma: {curr_gamma:.2f} | T: {curr_T:.2f}")
     plt.ioff()
     plt.show()
 

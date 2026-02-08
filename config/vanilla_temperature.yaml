@@ -1,0 +1,7 @@
+save_dir: ./logs/vanilla_temperature
+gamma_start: 1.0
+gamma_end: 1.0
+gamma_warmup_epochs: 1
+T_start: 1
+T_end: 0.1
+T_warmup_epochs: 15000
