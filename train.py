@@ -160,7 +160,7 @@ def train(cfg):
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
     model = Generator(cfg.latent_dim, cfg.data_dim).to(cfg.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=float(cfg.lr))
     loss_history = []
 
     # UI Setup
