@@ -72,14 +72,14 @@ def compute_V_DMD_Strict(x, y_pos, y_neg, T, gamma):
     # This is the mean-shift vector pointing towards the weighted barycenter of y_pos
     # which is a proxy for the (smoothed) score of p_real(x) ^ gamma
     dist_pos = torch.cdist(x, y_pos)
-    w_pos = F.softmax(-dist_pos**2 / T, dim=1) 
+    w_pos = F.softmax(-dist_pos / T, dim=1) 
     v_pos = (w_pos @ y_pos) - x
     
     # Negative Score Proxy (Repulsion from generated batch)
     dist_neg = torch.cdist(x, y_neg)
     # Mask self-comparison to prevent infinite attraction to self
     dist_neg = dist_neg + torch.eye(x.size(0), device=x.device) * 1e6
-    w_neg = F.softmax(-dist_neg**2 / T, dim=1)
+    w_neg = F.softmax(-dist_neg / T, dim=1)
     v_neg = (w_neg @ y_neg) - x
     
     return gamma * v_pos - v_neg
