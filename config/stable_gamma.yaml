@@ -1,0 +1,4 @@
+save_dir: ./logs/stable_gamma
+gamma_start: 0.2
+gamma_end: 1.0
+gamma_warmup_epochs: 15000

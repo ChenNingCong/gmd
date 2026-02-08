@@ -10,6 +10,7 @@ from dataclasses import dataclass, asdict
 # --- 1. Training Configuration ---
 @dataclass
 class Config:
+    seed: int = 42
     latent_dim: int = 16
     data_dim: int = 2
     N: int = 512
@@ -18,8 +19,8 @@ class Config:
     lr: float = 1e-3
     gamma_start: float = 0.2  # Initial mode-seeking strength
     gamma_end: float = 1.5    # Final mode-seeking strength
-    warmup: int = 15000       # Linear warmup steps for gamma
-    plot_interval: int = 500
+    gamma_warmup_epochs: int = 15000       # Linear warmup steps for gamma
+    plot_interval: int = 1000
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     save_dir: str = "training_plots"
     # A dirty hack to allow saving/loading device info in YAML
@@ -153,6 +154,8 @@ def update_plots(axs, fig, epoch, x, V, loss_history, gamma, cfg):
 # --- 5. Main Training Function ---
 
 def train(cfg):
+    torch.manual_seed(cfg.seed)
+    np.random.seed(cfg.seed)
     model = Generator(cfg.latent_dim, cfg.data_dim).to(cfg.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     loss_history = []
@@ -173,7 +176,7 @@ def train(cfg):
         if not is_running[0]: break
 
         # Gamma Linear Schedule
-        curr_gamma = cfg.gamma_start + (cfg.gamma_end - cfg.gamma_start) * min(1.0, epoch / cfg.warmup)
+        curr_gamma = cfg.gamma_start + (cfg.gamma_end - cfg.gamma_start) * min(1.0, epoch / cfg.gamma_warmup_epochs)
 
         # 1. Generate Samples
         e = torch.randn(cfg.N, cfg.latent_dim, device=cfg.device)
